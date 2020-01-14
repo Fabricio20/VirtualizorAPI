@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class VirtualizorAPI {
@@ -99,6 +100,68 @@ public class VirtualizorAPI {
         } catch (JsonProcessingException ex) {
             logger.error("Error parsing vps status", ex);
             return new HashMap<>();
+        }
+    }
+
+    /**
+     * Finds a VPS by Hostname.
+     *
+     * @param hostname - Hostname of the VPS.
+     * @return VirtualServer or null.
+     */
+    public VirtualServer getServerById(String hostname) {
+        Map<String, String> params = new HashMap<>();
+        params.put("act", "vs");
+        params.put("vpshostname", hostname);
+
+        String response = this.call(params, true);
+        if (response == null) {
+            return null;
+        }
+        try {
+            AtomicReference<VirtualServer> server = new AtomicReference<>();
+            objectMapper.readTree(response).get("vs").elements().forEachRemaining(node -> {
+                try {
+                    server.set(objectMapper.readValue(node.toString(), VirtualServer.class));
+                } catch (JsonProcessingException ex) {
+                    logger.error("Error parsing server", ex);
+                }
+            });
+            return server.get();
+        } catch (JsonProcessingException ex) {
+            logger.error("Error parsing vps status", ex);
+            return null;
+        }
+    }
+
+    /**
+     * Finds a VPS by id.
+     *
+     * @param id - Id of the VPS.
+     * @return VirtualServer or null.
+     */
+    public VirtualServer getServerById(long id) {
+        Map<String, String> params = new HashMap<>();
+        params.put("act", "vs");
+        params.put("vpsid", String.valueOf(id));
+
+        String response = this.call(params, true);
+        if (response == null) {
+            return null;
+        }
+        try {
+            AtomicReference<VirtualServer> server = new AtomicReference<>();
+            objectMapper.readTree(response).get("vs").elements().forEachRemaining(node -> {
+                try {
+                    server.set(objectMapper.readValue(node.toString(), VirtualServer.class));
+                } catch (JsonProcessingException ex) {
+                    logger.error("Error parsing server", ex);
+                }
+            });
+            return server.get();
+        } catch (JsonProcessingException ex) {
+            logger.error("Error parsing vps status", ex);
+            return null;
         }
     }
 
