@@ -109,7 +109,7 @@ public class VirtualizorAPI {
      * @param hostname - Hostname of the VPS.
      * @return VirtualServer or null.
      */
-    public VirtualServer getServerById(String hostname) {
+    public VirtualServer getServerByHostname(String hostname) {
         Map<String, String> params = new HashMap<>();
         params.put("act", "vs");
         params.put("vpshostname", hostname);

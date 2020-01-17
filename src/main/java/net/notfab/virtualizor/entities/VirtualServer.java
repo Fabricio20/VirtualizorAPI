@@ -12,7 +12,9 @@ public class VirtualServer {
     private String vpsid;
     private String uuid;
     private String hostname;
+    private String plid; // plan id - 10
     private String os_name; // ubuntu-18.04
+    private String osid; // os ID - 270
     private String space; // HDD in GB
     private String ram;
     private String swap;
