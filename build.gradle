@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'net.notfab'
-version '1.0.1'
+version '1.0.2'
 description 'Virtualizor Java SDK'
 
 sourceCompatibility = targetCompatibility = 8
@@ -75,7 +75,7 @@ repositories {
 }
 
 wrapper {
-    gradleVersion = '6.0.1'
+    gradleVersion = '6.3'
 }
 
 dependencies {

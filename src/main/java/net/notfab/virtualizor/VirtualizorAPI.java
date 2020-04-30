@@ -6,11 +6,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.notfab.virtualizor.entities.VNCInfo;
 import net.notfab.virtualizor.entities.VirtualServer;
+import net.notfab.virtualizor.entities.VzBackup;
+import net.notfab.virtualizor.entities.VzPlan;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -281,6 +287,141 @@ public class VirtualizorAPI {
             logger.error("Error fetching VNC information " + vpsId, ex);
             return null;
         }
+    }
+
+    public List<VzPlan> getPlans() {
+        Map<String, String> params = new HashMap<>();
+        params.put("act", "plans");
+        try {
+            List<VzPlan> planList = new ArrayList<>();
+            int page = 1;
+            do {
+                params.put("page", String.valueOf(page));
+                String response = this.call(params, false);
+                if (response == null) {
+                    return planList;
+                }
+                if (!objectMapper.readTree(response).has("plans")) {
+                    break;
+                }
+                objectMapper.readTree(response).get("plans").elements().forEachRemaining(node -> {
+                    try {
+                        VzPlan plan = objectMapper.readValue(node.toString(), VzPlan.class);
+                        planList.add(plan);
+                    } catch (JsonProcessingException ex) {
+                        logger.error("Error parsing Plan", ex);
+                    }
+                });
+                page++;
+            } while (true);
+            return planList;
+        } catch (JsonProcessingException ex) {
+            logger.error("Error parsing plan", ex);
+            return new ArrayList<>();
+        }
+    }
+
+    public List<VzBackup> getBackups(long vpsId) {
+        String responseBody;
+        String apiKey = this.getAPIK(this.generateRandStr(), this.PASS);
+
+        Request request;
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
+        builder.addFormDataPart("vpsid", String.valueOf(vpsId));
+        String url = URL + "/index.php" +
+                "?api=json" +
+                "&apikey=" + apiKey +
+                "&act=vpsrestore&op=get_vps";
+        request = new Request.Builder().url(url)
+                .addHeader("User-Agent", "GalaxyGate/1.0")
+                .post(builder.build())
+                .build();
+        try (Response response = this.client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                return new ArrayList<>();
+            }
+            ResponseBody body = response.body();
+            if (body == null) {
+                return new ArrayList<>();
+            }
+            responseBody = body.string();
+        } catch (Exception ex) {
+            logger.error("Error requesting to Virtualizor API", ex);
+            return new ArrayList<>();
+        }
+        // --
+        try {
+            List<VzBackup> planList = new ArrayList<>();
+            JsonNode node = objectMapper.readTree(responseBody);
+            if (!node.has("backup_list") || !node.has("vps_backup_server")) {
+                return planList;
+            }
+            long server = Long.parseLong(node.get("vps_backup_server").asText());
+            node.get("backup_list").fields().forEachRemaining((x) -> {
+                Date date;
+                try {
+                    date = new SimpleDateFormat("yyyyMMdd").parse(x.getKey());
+                } catch (ParseException e) {
+                    return;
+                }
+                JsonNode array = x.getValue();
+                array.elements().forEachRemaining(y -> {
+                    VzBackup backup;
+                    try {
+                        backup = objectMapper.readValue(y.toString(), VzBackup.class);
+                        backup.setServer(server);
+                        backup.setDate(date);
+                        planList.add(backup);
+                    } catch (JsonProcessingException ignored) {
+                    }
+                });
+            });
+            return planList;
+        } catch (JsonProcessingException ex) {
+            logger.error("Error parsing Backups", ex);
+            return new ArrayList<>();
+        }
+    }
+
+    public String getMetrics(long vpsId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("act", "vps_stats");
+        params.put("show", "1");
+        params.put("vpsid", String.valueOf(vpsId));
+
+        String response = this.call(params, true);
+        if (response == null) {
+            logger.warn("Unknown response from VPS Metrics (vId = " + vpsId + ")");
+            return null;
+        }
+        try {
+            return response;
+        } catch (Exception ex) {
+            logger.error("Error fetching VPS Metrics " + vpsId, ex);
+        }
+        return null;
+    }
+
+    public String getNodeMetrics(String yyyyMM) {
+        Map<String, String> params = new HashMap<>();
+        params.put("act", "server_stats");
+        if (yyyyMM == null) {
+            yyyyMM = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        }
+        params.put("show", yyyyMM);
+
+        String response = this.call(params, false);
+        if (response == null) {
+            logger.warn("Unknown response from Node Metrics");
+            return null;
+        }
+        try {
+            return response;
+        } catch (Exception ex) {
+            logger.error("Error fetching VPS Metrics", ex);
+        }
+        return null;
     }
 
     private String getAPIK(String key, String pass) {
