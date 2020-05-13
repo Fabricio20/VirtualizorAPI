@@ -425,7 +425,7 @@ public class VirtualizorAPI {
     }
 
     // https://www.virtualizor.com/admin-api/manage-vps
-    private boolean manageVPS(long vpsId, Map<String, String> settings) {
+    public boolean update(long vpsId, Map<String, String> settings) {
         Map<String, String> params = new HashMap<>();
         params.put("act", "managevps");
         params.put("vpsid", String.valueOf(vpsId));
