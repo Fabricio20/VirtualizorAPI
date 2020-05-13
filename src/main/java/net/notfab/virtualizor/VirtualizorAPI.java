@@ -442,7 +442,7 @@ public class VirtualizorAPI {
             return node.has("done") && node.get("done").has("done")
                     && node.get("done").get("done").asBoolean()
                     // No errors
-                    && (node.has("error") && node.get("error").isEmpty());
+                    && (!node.has("error") || node.get("error").isEmpty());
         } catch (Exception ex) {
             logger.error("Error fetching VPS Metrics " + vpsId, ex);
         }

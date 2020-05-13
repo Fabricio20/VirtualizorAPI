@@ -4,3 +4,4 @@
 out/
 build/
 target/
+src/test/java/Test.java
