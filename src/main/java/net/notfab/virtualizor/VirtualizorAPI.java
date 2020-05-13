@@ -429,6 +429,7 @@ public class VirtualizorAPI {
         Map<String, String> params = new HashMap<>();
         params.put("act", "managevps");
         params.put("vpsid", String.valueOf(vpsId));
+        params.put("editvps", "1");
         params.putAll(settings);
 
         String response = this.call(params, true);
