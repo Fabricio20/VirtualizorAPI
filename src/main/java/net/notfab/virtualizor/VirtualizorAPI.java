@@ -424,6 +424,30 @@ public class VirtualizorAPI {
         return null;
     }
 
+    // https://www.virtualizor.com/admin-api/manage-vps
+    private boolean manageVPS(long vpsId, Map<String, String> settings) {
+        Map<String, String> params = new HashMap<>();
+        params.put("act", "managevps");
+        params.put("vpsid", String.valueOf(vpsId));
+        params.putAll(settings);
+
+        String response = this.call(params, true);
+        if (response == null) {
+            logger.warn("Unknown response from Manage VPS (vId = " + vpsId + ")");
+            return false;
+        }
+        try {
+            JsonNode node = objectMapper.readTree(response);
+            return node.has("done") && node.get("done").has("done")
+                    && node.get("done").get("done").asBoolean()
+                    // No errors
+                    && (node.has("error") && node.get("error").isEmpty());
+        } catch (Exception ex) {
+            logger.error("Error fetching VPS Metrics " + vpsId, ex);
+        }
+        return false;
+    }
+
     private String getAPIK(String key, String pass) {
         return key + md5(pass + key);
     }
