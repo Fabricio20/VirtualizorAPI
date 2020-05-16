@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,8 @@ public class VirtualizorAPI {
             .followSslRedirects(true)
             .followRedirects(true)
             .hostnameVerifier((s, sslSession) -> true)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(3, TimeUnit.MINUTES)
             .build();
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
