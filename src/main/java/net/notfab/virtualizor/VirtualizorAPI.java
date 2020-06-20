@@ -90,10 +90,12 @@ public class VirtualizorAPI {
      * @param vpsId Ids of the Virtual Servers.
      * @return Virtual Server status (Online or Offline).
      */
-    public Map<String, Boolean> getStatus(Long... vpsId) {
+    public Map<String, Boolean> getStatus(long... vpsId) {
         Map<String, String> params = new HashMap<>();
         params.put("act", "vs");
-        params.put("vs_status", Arrays.stream(vpsId).map(String::valueOf).collect(Collectors.joining(",")));
+        params.put("vs_status", Arrays.stream(vpsId)
+                .mapToObj(String::valueOf)
+                .collect(Collectors.joining(",")));
 
         String response = this.call(params, false);
         if (response == null) {
