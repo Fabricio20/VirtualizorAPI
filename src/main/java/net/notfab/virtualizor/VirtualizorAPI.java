@@ -177,6 +177,37 @@ public class VirtualizorAPI {
     }
 
     /**
+     * Find by IP.
+     *
+     * @param ip - Ip address the VPS.
+     * @return VirtualServer or null.
+     */
+    public Optional<VirtualServer> findByIP(String ip) {
+        Map<String, String> params = new HashMap<>();
+        params.put("act", "vs");
+        params.put("vpsip", ip);
+
+        String response = this.call(params, true);
+        if (response == null) {
+            return Optional.empty();
+        }
+        try {
+            AtomicReference<Optional<VirtualServer>> server = new AtomicReference<>(Optional.empty());
+            objectMapper.readTree(response).get("vs").elements().forEachRemaining(node -> {
+                try {
+                    server.set(Optional.of(objectMapper.readValue(node.toString(), VirtualServer.class)));
+                } catch (JsonProcessingException ex) {
+                    logger.error("Error parsing server", ex);
+                }
+            });
+            return server.get();
+        } catch (JsonProcessingException ex) {
+            logger.error("Error parsing vps status", ex);
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Lists all VPSes which belong to a specific user.
      *
      * @param email - Email.
