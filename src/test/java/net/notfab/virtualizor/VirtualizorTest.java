@@ -57,7 +57,6 @@ class VirtualizorTest {
         array.put("192.168.0.3");
         JSONObject object = new JSONObject();
         object.put("ips[]", array);
-        object.put("editvps", "1");
         assert this.api.update(2624, object);
     }
 
