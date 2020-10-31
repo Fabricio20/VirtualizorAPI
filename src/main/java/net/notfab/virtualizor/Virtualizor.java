@@ -133,6 +133,7 @@ public class Virtualizor {
     public boolean update(long id, JSONObject params) {
         JSONObject object = new JSONObject();
         object.put("vpsid", String.valueOf(id));
+        params.keys().forEachRemaining(key -> object.put(key, params.get(key)));
         try (InputStream stream = this.api.post("managevps", object)) {
             JsonNode node = this.objectMapper.readTree(stream);
             return node.get("done").asBoolean(false);
