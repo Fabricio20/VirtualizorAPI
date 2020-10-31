@@ -137,7 +137,7 @@ public class Virtualizor {
         params.keys().forEachRemaining(key -> object.put(key, params.get(key)));
         try (InputStream stream = this.api.post("managevps", object)) {
             JsonNode node = this.objectMapper.readTree(stream);
-            return node.get("done").asBoolean(false);
+            return node.get("done").get("done").asBoolean();
         } catch (IOException e) {
             return false;
         }
