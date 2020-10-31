@@ -23,4 +23,8 @@ public class InetAddr {
     @JsonProperty("vpsid")
     private long vpsId;
 
+    @JsonProperty("locked")
+    @JsonDeserialize(using = NumericBooleanDeserializer.class)
+    private boolean locked;
+
 }
