@@ -3,6 +3,7 @@ package net.notfab.virtualizor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
@@ -40,7 +41,16 @@ public class UnderlyingAPI {
     @Nullable
     protected InputStream post(String action, JSONObject body) {
         MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-        body.keySet().forEach((key) -> builder.addFormDataPart(key, body.getString(key)));
+        body.keySet().forEach((key) -> {
+            if (body.get(key) instanceof JSONArray) {
+                JSONArray array = body.getJSONArray(key);
+                for (int i = 0; i < array.length(); i++) {
+                    builder.addFormDataPart(key, array.getString(i));
+                }
+            } else {
+                builder.addFormDataPart(key, body.getString(key));
+            }
+        });
         String url = this.url + "/index.php" +
                 "?api=json" +
                 "&apikey=" + KeyGenerator.get(this.password) +
