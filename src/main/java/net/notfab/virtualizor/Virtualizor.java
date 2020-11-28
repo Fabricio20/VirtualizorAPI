@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Slf4j
@@ -61,7 +62,7 @@ public class Virtualizor {
             JsonNode vps = node.get("vs").elements().next();
             VPS server = this.objectMapper.treeToValue(vps, VPS.class);
             return Optional.of(server);
-        } catch (IOException e) {
+        } catch (IOException | NoSuchElementException e) {
             return Optional.empty();
         }
     }
