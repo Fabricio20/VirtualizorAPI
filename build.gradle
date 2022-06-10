@@ -74,10 +74,6 @@ repositories {
     mavenCentral()
 }
 
-wrapper {
-    gradleVersion = '6.3'
-}
-
 dependencies {
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.2.2'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.1'
