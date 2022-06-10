@@ -12,10 +12,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 public class Virtualizor {
@@ -33,7 +30,14 @@ public class Virtualizor {
         object.put("vpshostname", hostname);
         try (InputStream stream = this.api.post("vs", object)) {
             JsonNode node = this.objectMapper.readTree(stream);
-            JsonNode vps = node.get("vs").elements().next();
+            if (!node.has("vs")) {
+                return Optional.empty();
+            }
+            Iterator<JsonNode> vs = node.get("vs").elements();
+            if (!vs.hasNext()) {
+                return Optional.empty();
+            }
+            JsonNode vps = vs.next();
             VPS server = this.objectMapper.treeToValue(vps, VPS.class);
             return Optional.of(server);
         } catch (IOException e) {
@@ -46,10 +50,17 @@ public class Virtualizor {
         object.put("vpsid", String.valueOf(id));
         try (InputStream stream = this.api.post("vs", object)) {
             JsonNode node = this.objectMapper.readTree(stream);
-            JsonNode vps = node.get("vs").elements().next();
+            if (!node.has("vs")) {
+                return Optional.empty();
+            }
+            Iterator<JsonNode> vs = node.get("vs").elements();
+            if (!vs.hasNext()) {
+                return Optional.empty();
+            }
+            JsonNode vps = vs.next();
             VPS server = this.objectMapper.treeToValue(vps, VPS.class);
             return Optional.of(server);
-        } catch (IOException e) {
+        } catch (IOException ex) {
             return Optional.empty();
         }
     }
@@ -59,7 +70,14 @@ public class Virtualizor {
         object.put("vpsip", ip);
         try (InputStream stream = this.api.post("vs", object)) {
             JsonNode node = this.objectMapper.readTree(stream);
-            JsonNode vps = node.get("vs").elements().next();
+            if (!node.has("vs")) {
+                return Optional.empty();
+            }
+            Iterator<JsonNode> vs = node.get("vs").elements();
+            if (!vs.hasNext()) {
+                return Optional.empty();
+            }
+            JsonNode vps = vs.next();
             VPS server = this.objectMapper.treeToValue(vps, VPS.class);
             return Optional.of(server);
         } catch (IOException | NoSuchElementException e) {
@@ -70,6 +88,26 @@ public class Virtualizor {
     public List<VPS> findByEmail(String email) {
         JSONObject object = new JSONObject();
         object.put("user", email);
+        List<VPS> vpsList = new ArrayList<>();
+        try (InputStream stream = this.api.post("vs", object)) {
+            JsonNode node = this.objectMapper.readTree(stream);
+            node.get("vs").elements().forEachRemaining(vps -> {
+                try {
+                    VPS server = this.objectMapper.treeToValue(vps, VPS.class);
+                    vpsList.add(server);
+                } catch (JsonProcessingException e) {
+                    log.error("Failed to parse vps", e);
+                }
+            });
+            return vpsList;
+        } catch (IOException e) {
+            return vpsList;
+        }
+    }
+
+    public List<VPS> findAll(int page) {
+        JSONObject object = new JSONObject();
+        object.put("page", page);
         List<VPS> vpsList = new ArrayList<>();
         try (InputStream stream = this.api.post("vs", object)) {
             JsonNode node = this.objectMapper.readTree(stream);

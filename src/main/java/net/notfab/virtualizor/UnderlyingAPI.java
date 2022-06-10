@@ -42,7 +42,9 @@ public class UnderlyingAPI {
     protected InputStream post(String action, JSONObject body) {
         MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
         body.keySet().forEach((key) -> {
-            if (body.get(key) instanceof JSONArray) {
+            if (key.equals("page")) {
+                builder.addFormDataPart("page", "" + body.getInt("page"));
+            } else if (body.get(key) instanceof JSONArray) {
                 JSONArray array = body.getJSONArray(key);
                 for (int i = 0; i < array.length(); i++) {
                     builder.addFormDataPart(key, array.getString(i));
@@ -55,6 +57,9 @@ public class UnderlyingAPI {
                 "?api=json" +
                 "&apikey=" + KeyGenerator.get(this.password) +
                 "&act=" + action;
+        if (body.has("page")) {
+            url = url + "&page=" + body.getInt("page");
+        }
         Request request = new Request.Builder().url(url)
                 .addHeader("User-Agent", "GalaxyGate/1.0")
                 .post(builder.build())
